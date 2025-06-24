@@ -1,5 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
+using Testing1.Business.Abstract;
+using Testing1.Business.Concrete;
 using Testing1.Context;
 
 namespace Testing1
@@ -22,6 +24,7 @@ namespace Testing1
                 options.UseSqlServer(config.GetConnectionString("ApiConnection"));
             });
 
+            builder.Services.AddScoped<IProductService, ProductService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

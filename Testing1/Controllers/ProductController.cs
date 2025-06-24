@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Testing1.Business.Abstract;
 using Testing1.Context;
 using Testing1.Models;
 
@@ -12,78 +13,52 @@ namespace Testing1.Controllers
 
     public class ProductController : ControllerBase
     {
-        private readonly ProductContext _productContext;
+        private readonly IProductService _productService;
 
-        public ProductController(ProductContext productContext)
+        public ProductController(IProductService productService)
         {
-            _productContext = productContext;
+            _productService = productService;
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int? id)
+        public async Task<IActionResult> GetById(int id)
         {
-            if (id == null)
-            {
-                return BadRequest();
-            }
-            var existProduct = await _productContext.Products.FirstOrDefaultAsync(p => p.Id == id);
-            if (existProduct is null)
-            {
-                return BadRequest();
-            }
-            return Ok(existProduct);
+            var product = await _productService.GetByIdAsync(id);
+            if (product == null) return NotFound();
+            return Ok(product);
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var products = await _productContext.Products.ToListAsync();
+            var products = await _productService.GetAllAsync();
             return Ok(products);
         }
 
-        
-
         [HttpDelete("{id}")]
-        public async Task<IActionResult>Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var existProduct = await _productContext.Products.FirstOrDefaultAsync(m => m.Id == id);
-            if (existProduct is null)
-            {
-                return NotFound();
-            }
-            _productContext.Products.Remove(existProduct);
-            await _productContext.SaveChangesAsync();
-            return StatusCode(StatusCodes.Status204NoContent);
+            var deleted = await _productService.DeleteAsync(id);
+            if (!deleted) return NotFound();
+            return NoContent();
         }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Product product)
         {
-            if ( product is null)
-            {
-                return BadRequest("Mehsulun datalari bos ola bilmez!");
-            }
-            await _productContext.Products.AddAsync(product);
-            await _productContext.SaveChangesAsync();
-            return StatusCode(StatusCodes.Status201Created, product);
-        }
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Product newProduct)
-        {
-            if (newProduct==null || id!=newProduct.Id)
-            {
-                return BadRequest("Melumatlar duzgun deyil.");
-            }
-            var existProduct = await _productContext.Products.FirstOrDefaultAsync(p => p.Id == id);
-            if (existProduct==null)
-            {
-                return NotFound("Product tapilmadi!");
-            }
-            existProduct.Name = newProduct.Name;
-            existProduct.Description = newProduct.Description;
-            existProduct.Price = newProduct.Price;
-            await _productContext.SaveChangesAsync();
-            return Ok(existProduct);
+            if (product == null) return BadRequest("Məhsul məlumatları boş ola bilməz!");
+            var createdProduct = await _productService.CreateAsync(product);
+            return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, createdProduct);
         }
 
-   
-    }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Product product)
+        {
+            if (product == null || id != product.Id) return BadRequest("Məlumatlar düzgün deyil.");
+            var updatedProduct = await _productService.UpdateAsync(id, product);
+            if (updatedProduct == null) return NotFound("Product tapılmadı!");
+            return Ok(updatedProduct);
+        }
+
+}
 }
