@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Testing1.Business.Abstract;
 using Testing1.Business.Concrete;
 using Testing1.Context;
+using Testing1.Middlewares;
 
 namespace Testing1
 {
@@ -26,6 +27,7 @@ namespace Testing1
 
             builder.Services.AddScoped<IProductService, ProductService>();
             var app = builder.Build();
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
