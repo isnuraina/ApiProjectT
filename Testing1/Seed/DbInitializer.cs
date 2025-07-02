@@ -31,6 +31,7 @@ namespace Testing1.Seed
                         UserName = adminEmail,
                         Email = adminEmail,
                         EmailConfirmed = true,
+
                         Fullname = "Admin"
                     };
 
