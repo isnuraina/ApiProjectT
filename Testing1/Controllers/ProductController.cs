@@ -1,16 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization; // 🔹 Əlavə et
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using Testing1.Business.Abstract;
-using Testing1.Context;
 using Testing1.Models;
 
 namespace Testing1.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -21,6 +17,7 @@ namespace Testing1.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _productService.GetByIdAsync(id);
@@ -29,6 +26,7 @@ namespace Testing1.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var products = await _productService.GetAllAsync();
@@ -36,6 +34,7 @@ namespace Testing1.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _productService.DeleteAsync(id);
@@ -44,6 +43,7 @@ namespace Testing1.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] Product product)
         {
             if (product == null) return BadRequest("Məhsul məlumatları boş ola bilməz!");
@@ -52,13 +52,13 @@ namespace Testing1.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] Product product)
         {
             if (product == null || id != product.Id) return BadRequest("Məlumatlar düzgün deyil.");
             var updatedProduct = await _productService.UpdateAsync(id, product);
-            if (updatedProduct == null) return NotFound("Product tapılmadı!");
+            if (updatedProduct == null) return NotFound("Məhsul tapılmadı!");
             return Ok(updatedProduct);
         }
-
-}
+    }
 }

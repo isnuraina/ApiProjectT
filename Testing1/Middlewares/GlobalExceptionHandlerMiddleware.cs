@@ -21,7 +21,7 @@ namespace Testing1.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Xəta baş verdi!"); 
+                _logger.LogError(ex, "Error bas verdi!"); 
                 context.Response.StatusCode = 500;
                 context.Response.ContentType = "application/json";
 
